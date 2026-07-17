@@ -1,0 +1,29 @@
+[project]
+name = "portal-obras-api"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi==0.115.8",
+  "uvicorn[standard]==0.34.0",
+  "pydantic-settings==2.7.1",
+  "sqlalchemy==2.0.37",
+  "alembic==1.14.1",
+  "psycopg[binary]==3.2.4",
+  "httpx==0.28.1",
+  "beautifulsoup4==4.12.3",
+  "apscheduler==3.11.0",
+  "python-multipart==0.0.20"
+  ,"email-validator==2.2.0"
+]
+[project.optional-dependencies]
+dev = ["pytest==8.3.4", "ruff==0.9.3", "mypy==1.14.1"]
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+[tool.ruff]
+line-length = 100
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true
+[tool.setuptools.packages.find]
+include = ["app*"]
