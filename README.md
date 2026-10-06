@@ -104,6 +104,60 @@ docker compose up --build -d
 
 As migrações pendentes serão aplicadas automaticamente, preservando os dados existentes.
 
+## Web scraping do EngeGOV
+
+Uma das partes centrais deste projeto é o coletor desenvolvido em Python para obter dados públicos diretamente do Portal EngeGOV de Blumenau. O portal utiliza JSF/PrimeFaces, portanto a coleta não se limita a ler uma página HTML: o código preserva o estado da sessão, reproduz as requisições AJAX de paginação, abre as fichas individuais e interpreta as respostas parciais em XML e HTML.
+
+O coletor está em [`apps/api/app/ingestion/engegov_connector.py`](apps/api/app/ingestion/engegov_connector.py) e utiliza `httpx` e `BeautifulSoup`. Ele reúne:
+
+- identificação, situação e descrição das obras e serviços;
+- secretaria, endereço e tipo de intervenção;
+- dados de contratos, empresas, datas, valores e medições;
+- coordenadas publicadas no mapa e identificação do bairro;
+- URL da fonte, horário da coleta e hash de conteúdo de cada registro.
+
+A implementação foi projetada para ser auditável e respeitosa com a fonte pública:
+
+- acessa somente páginas públicas, sem autenticação ou áreas restritas;
+- não tenta contornar CAPTCHA ou mecanismos de proteção;
+- valida TLS por padrão;
+- executa a coleta sequencialmente e aplica intervalo entre requisições;
+- registra metadados suficientes para conferir a origem dos dados;
+- limita o tamanho de página aceito pelo portal.
+
+O portal exibido pelo projeto não executa web scraping a cada acesso. Ele utiliza um **snapshot versionado**, gerado previamente pelo coletor. Isso melhora o desempenho, permite reproduzir análises e evita requisições desnecessárias ao EngeGOV.
+
+Os dois arquivos abaixo devem permanecer idênticos:
+
+- `apps/api/app/data/engegov-snapshot.json`, utilizado pela API e pela carga do banco;
+- `apps/web/app/engegov-snapshot.json`, incorporado à interface durante a construção.
+
+### Executar uma nova coleta
+
+Como a coleta consulta uma fonte externa e pode demorar, execute-a somente quando houver necessidade de atualizar a fotografia pública.
+
+No Windows PowerShell:
+
+```powershell
+docker compose run --rm --volume "${PWD}:/workspace" api python -m app.ingestion.engegov_connector --output /workspace/apps/api/app/data/engegov-snapshot.json
+Copy-Item apps/api/app/data/engegov-snapshot.json apps/web/app/engegov-snapshot.json
+```
+
+No Linux ou macOS:
+
+```bash
+docker compose run --rm --volume "$PWD:/workspace" api python -m app.ingestion.engegov_connector --output /workspace/apps/api/app/data/engegov-snapshot.json
+cp apps/api/app/data/engegov-snapshot.json apps/web/app/engegov-snapshot.json
+```
+
+Depois da coleta, revise as alterações nos arquivos JSON, execute os testes e reconstrua a aplicação:
+
+```text
+docker compose up --build -d
+```
+
+O parâmetro `--insecure-tls` existe apenas para ambientes em que a cadeia pública de certificados não é reconhecida. Seu uso reduz a segurança e fica registrado nos metadados do snapshot. Como a estrutura do portal de origem pode mudar, uma falha futura na coleta pode exigir a atualização dos seletores ou dos parâmetros JSF.
+
 ## Recarregar os dados públicos
 
 Para carregar novamente no banco a fotografia já incluída no repositório:
@@ -112,15 +166,7 @@ Para carregar novamente no banco a fotografia já incluída no repositório:
 docker compose run --rm api python -m app.seed
 ```
 
-Para coletar uma nova fotografia do Portal EngeGOV:
-
-```text
-docker compose run --rm api python -m app.ingestion.engegov_connector --output app/data/engegov-snapshot.json
-```
-
-Depois de validar a nova fotografia, copie o mesmo arquivo para `apps/web/app/engegov-snapshot.json`, que é a versão incorporada ao site estático, e reconstrua os serviços.
-
-O coletor valida TLS por padrão. A opção `--insecure-tls` existe apenas para ambientes em que a cadeia pública do servidor não é reconhecida; essa condição fica registrada no snapshot.
+Esse comando é idempotente: registros já existentes são atualizados pelo código da fonte, em vez de serem duplicados.
 
 ## Problemas comuns
 
