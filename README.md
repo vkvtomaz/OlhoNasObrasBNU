@@ -1,8 +1,7 @@
 # De Olho nas Obras — Blumenau
 
 Portal cidadão, acessível e apartidário para acompanhar obras e serviços públicos de Blumenau por contrato, prazo, custo e ciclos municipais de quatro anos.
-
-Projeto acadêmico desenvolvido em colaboração. O histórico do [repositório original](https://github.com/GAVRr/SiteObras) foi preservado nesta versão.
+Projeto acadêmico desenvolvido em colaboração.
 
 ## Dados públicos reais
 
@@ -16,8 +15,6 @@ Para executar o projeto completo, instale:
 
 - [Git](https://git-scm.com/downloads);
 - [Docker Desktop](https://docs.docker.com/desktop/) com o mecanismo em execução.
-
-No Windows, o Docker Desktop deve usar o backend WSL 2. Recomenda-se pelo menos 8 GB de memória RAM. Não é necessário instalar Python, Node.js, PostgreSQL ou Redis separadamente: o Docker fornece todos esses ambientes.
 
 Confirme a instalação em um terminal novo:
 
