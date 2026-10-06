@@ -12,7 +12,7 @@ class Work(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     source_code: Mapped[str | None] = mapped_column(String(40), unique=True, nullable=True)
     slug: Mapped[str] = mapped_column(String(160), unique=True)
-    name: Mapped[str] = mapped_column(String(240))
+    name: Mapped[str] = mapped_column(Text)
     purpose: Mapped[str] = mapped_column(Text)
     neighborhood: Mapped[str] = mapped_column(String(120))
     official_status: Mapped[str] = mapped_column(String(60))

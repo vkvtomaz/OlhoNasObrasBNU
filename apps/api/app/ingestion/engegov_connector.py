@@ -347,8 +347,8 @@ class EngegovConnector(BaseConnector):
             view_state = _view_state(map_updates, view_state)
             markers = _parse_map_markers(map_updates.get(MAP_COMPONENT_ID, ""))
             markers_by_title: dict[str, list[dict[str, Any]]] = {}
-            for marker in markers:
-                markers_by_title.setdefault(marker["title"].casefold(), []).append(marker)
+            for map_marker in markers:
+                markers_by_title.setdefault(map_marker["title"].casefold(), []).append(map_marker)
             for index, item in enumerate(works):
                 candidates = markers_by_title.get(item["name"].casefold(), [])
                 marker = candidates.pop(0) if candidates else (markers[index] if index < len(markers) else None)
